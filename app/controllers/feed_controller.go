@@ -55,7 +55,7 @@ func GetFeed(c echo.Context) error {
 	// user
 	go func() {
 		defer wg.Done()
-		users, uErr = queries.DouyinDB.GetUserInfo(userIDs)
+		users, uErr = queries.DouyinDB.GetUserInfos(userIDs)
 	}()
 	// follow
 	go func() {
