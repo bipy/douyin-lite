@@ -17,8 +17,5 @@ func (db *DouyinQuery) CreateUser(username, hash string) (int, error) {
 		return 0, err
 	}
 	id, err := r.LastInsertId()
-	if err != nil {
-		return 0, err
-	}
 	return int(id), nil
 }

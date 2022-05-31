@@ -15,23 +15,23 @@ func PublicRoutes(a *echo.Echo) {
 	userGroup.POST("/login", controllers.Login)
 
 	publishGroup := a.Group("/publish")
-	publishGroup.POST("/action", controllers.GetHello)
-	publishGroup.GET("/list", controllers.GetHello)
+	publishGroup.POST("/action", controllers.PublishAction)
+	publishGroup.GET("/list", controllers.GetPublishList)
 
 	favoriteGroup := a.Group("/favorite")
-	favoriteGroup.POST("/action", controllers.GetHello)
-	favoriteGroup.GET("/list", controllers.GetHello)
+	favoriteGroup.POST("/action", controllers.FavoriteAction)
+	favoriteGroup.GET("/list", controllers.GetFavoriteList)
 
 	commentGroup := a.Group("/comment")
-	commentGroup.POST("/action", controllers.GetHello)
-	commentGroup.GET("/list", controllers.GetHello)
+	commentGroup.POST("/action", controllers.CommentAction)
+	commentGroup.GET("/list", controllers.GetCommentList)
 
 	relationGroup := a.Group("/relation")
-	relationGroup.POST("/action", controllers.GetHello)
+	relationGroup.POST("/action", controllers.RelationAction)
 
 	followGroup := relationGroup.Group("/follow")
-	followGroup.GET("/list", controllers.GetHello)
+	followGroup.GET("/list", controllers.GetFollowList)
 
 	followerGroup := relationGroup.Group("/follower")
-	followerGroup.GET("/list", controllers.GetHello)
+	followerGroup.GET("/list", controllers.GetFollowerList)
 }
