@@ -9,6 +9,7 @@ var (
 	MySQLDatabase string
 	RedisHost     string
 	RedisPassword string
+	RedisDBNum    string
 )
 
 func init() {
@@ -18,4 +19,5 @@ func init() {
 	MySQLDatabase = os.Getenv("MYSQL_DATABASE")
 	RedisHost = os.Getenv("REDIS_HOST")
 	RedisPassword = os.Getenv("REDIS_PASSWORD")
+	RedisDBNum = os.Getenv("REDIS_DB_NUMBER")
 }

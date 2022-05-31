@@ -10,9 +10,9 @@ func PublicRoutes(a *echo.Echo) {
 	feedGroup.GET("/", controllers.GetFeed)
 
 	userGroup := a.Group("/user")
-	userGroup.GET("/", controllers.GetHello)
-	userGroup.POST("/register", controllers.GetHello)
-	userGroup.POST("/login", controllers.GetHello)
+	userGroup.GET("/", controllers.GetUserInfo)
+	userGroup.POST("/register", controllers.Register)
+	userGroup.POST("/login", controllers.Login)
 
 	publishGroup := a.Group("/publish")
 	publishGroup.POST("/action", controllers.GetHello)

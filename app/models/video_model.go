@@ -9,4 +9,6 @@ type Video struct {
 	FavoriteCount int    `json:"favorite_count" db:"FAVORITE_COUNT"`
 	CommentCount  int    `json:"comment_count" db:"COMMENT_COUNT"`
 	CreateTime    uint   `json:"create_time" db:"CREATE_TIME"`
+	Author        *User  `json:"author"`
+	IsFavorite    bool   `json:"is_favorite"`
 }
