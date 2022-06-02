@@ -10,6 +10,7 @@ var (
 	RedisHost     string
 	RedisPassword string
 	RedisDBNum    string
+	JWTSecretKey  string
 )
 
 func init() {
@@ -20,4 +21,5 @@ func init() {
 	RedisHost = os.Getenv("REDIS_HOST")
 	RedisPassword = os.Getenv("REDIS_PASSWORD")
 	RedisDBNum = os.Getenv("REDIS_DB_NUMBER")
+	JWTSecretKey = os.Getenv("JWT_SECRET_KEY")
 }

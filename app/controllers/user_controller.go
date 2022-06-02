@@ -33,9 +33,14 @@ func Register(c echo.Context) error {
 		return c.JSON(http.StatusOK, utils.FailResponse(err.Error()))
 	}
 
+	token, err := utils.GenerateToken(id)
+	if err != nil {
+		return c.JSON(http.StatusOK, utils.FailResponse(err.Error()))
+	}
+
 	return c.JSON(http.StatusOK, utils.SuccessResponse(echo.Map{
 		"user_id": id,
-		"token":   "",
+		"token":   token,
 	}))
 }
 
@@ -60,9 +65,14 @@ func Login(c echo.Context) error {
 		return c.JSON(http.StatusOK, utils.FailResponse("Username or Password is Incorrect"))
 	}
 
+	token, err := utils.GenerateToken(id)
+	if err != nil {
+		return c.JSON(http.StatusOK, utils.FailResponse(err.Error()))
+	}
+
 	return c.JSON(http.StatusOK, utils.SuccessResponse(echo.Map{
 		"user_id": id,
-		"token":   "",
+		"token":   token,
 	}))
 }
 

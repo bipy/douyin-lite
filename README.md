@@ -31,7 +31,7 @@
 - 安全
   - [ ] 日志
   - [ ] 单元测试
-  - [ ] JWT
+  - [x] JWT
 
 **Build and Serve**
 ```bash
