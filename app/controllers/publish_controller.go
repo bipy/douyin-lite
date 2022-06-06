@@ -21,8 +21,8 @@ func PublishAction(c echo.Context) error {
 		return c.JSON(http.StatusOK, utils.FailResponse("Empty Title"))
 	}
 	// TODO Storage
-	coverUrl := "http://192.168.2.102/sample-cover"
-	playUrl := "http://192.168.2.102/sample-video"
+	coverUrl := "sample-cover"
+	playUrl := "sample-video"
 	_, err = queries.DouyinDB.CreateVideo(curID, playUrl, coverUrl, title)
 	if err != nil {
 		return c.JSON(http.StatusOK, utils.FailResponse(err.Error()))

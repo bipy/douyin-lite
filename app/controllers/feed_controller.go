@@ -112,6 +112,12 @@ func GetFeed(c echo.Context) error {
 		videos[i].Author = userMap[videos[i].AuthorId]
 	}
 
+	// TODO: Storage
+	for i := range videos {
+		videos[i].CoverUrl = "http://" + c.Request().Host + "/" + videos[i].CoverUrl
+		videos[i].PlayUrl = "http://" + c.Request().Host + "/" + videos[i].PlayUrl
+	}
+
 	return c.JSON(http.StatusOK, utils.SuccessResponse(echo.Map{
 		"next_time":  nextTime,
 		"video_list": videos,
