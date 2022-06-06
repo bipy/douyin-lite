@@ -5,12 +5,13 @@ import (
 	"douyin-lite/app/queries"
 	"douyin-lite/pkg/utils"
 	"github.com/labstack/echo/v4"
+	"log"
 	"net/http"
 	"strconv"
 )
 
 func RelationAction(c echo.Context) error {
-	curID, err := Authorize(c)
+	curID, err := MustAuthorize(c)
 	if err != nil {
 		return err
 	}
@@ -18,6 +19,10 @@ func RelationAction(c echo.Context) error {
 	toUserID, err := strconv.Atoi(params.Get("to_user_id"))
 	if err != nil {
 		return c.JSON(http.StatusOK, utils.FailResponse("Illegal to_user_id"))
+	}
+
+	if curID == toUserID {
+		return c.JSON(http.StatusOK, utils.FailResponse("不能关注自己噢"))
 	}
 
 	actionType, err := strconv.Atoi(params.Get("action_type"))
@@ -30,17 +35,41 @@ func RelationAction(c echo.Context) error {
 		if err != nil {
 			return c.JSON(http.StatusOK, utils.FailResponse(err.Error()))
 		}
+		go func() {
+			err := queries.DouyinDB.AddFollowCount(1, curID)
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+		}()
+		go func() {
+			err := queries.DouyinDB.AddFollowerCount(1, toUserID)
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+		}()
 	} else if actionType == 2 {
 		err := queries.DouyinDB.CancelFollow(curID, toUserID)
 		if err != nil {
 			return c.JSON(http.StatusOK, utils.FailResponse(err.Error()))
 		}
+		go func() {
+			err := queries.DouyinDB.AddFollowCount(-1, curID)
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+		}()
+		go func() {
+			err := queries.DouyinDB.AddFollowerCount(-1, toUserID)
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+		}()
 	}
 	return c.JSON(http.StatusOK, utils.SuccessResponse(echo.Map{}))
 }
 
 func GetFollowList(c echo.Context) error {
-	curID, err := Authorize(c)
+	curID, err := MustAuthorize(c)
 	if err != nil {
 		return err
 	}
@@ -55,7 +84,7 @@ func GetFollowList(c echo.Context) error {
 		return c.JSON(http.StatusOK, utils.FailResponse(err.Error()))
 	}
 
-	if curID != userID {
+	if curID != userID && len(users) > 0 {
 		userIDs := make([]int, len(users))
 		for i := range userIDs {
 			userIDs[i] = users[i].Id
@@ -86,7 +115,7 @@ func GetFollowList(c echo.Context) error {
 }
 
 func GetFollowerList(c echo.Context) error {
-	curID, err := Authorize(c)
+	curID, err := MustAuthorize(c)
 	if err != nil {
 		return err
 	}
@@ -101,23 +130,25 @@ func GetFollowerList(c echo.Context) error {
 		return c.JSON(http.StatusOK, utils.FailResponse(err.Error()))
 	}
 
-	userIDs := make([]int, len(users))
-	for i := range userIDs {
-		userIDs[i] = users[i].Id
-	}
+	if len(users) > 0 {
+		userIDs := make([]int, len(users))
+		for i := range userIDs {
+			userIDs[i] = users[i].Id
+		}
 
-	curFollow, err := queries.DouyinDB.GetFollows(curID, userIDs)
-	if err != nil {
-		return c.JSON(http.StatusOK, utils.FailResponse(err.Error()))
-	}
+		curFollow, err := queries.DouyinDB.GetFollows(curID, userIDs)
+		if err != nil {
+			return c.JSON(http.StatusOK, utils.FailResponse(err.Error()))
+		}
 
-	userMap := map[int]*models.User{}
-	for i := range users {
-		userMap[users[i].Id] = &users[i]
-	}
+		userMap := map[int]*models.User{}
+		for i := range users {
+			userMap[users[i].Id] = &users[i]
+		}
 
-	for _, f := range curFollow {
-		userMap[f].IsFollow = true
+		for _, f := range curFollow {
+			userMap[f].IsFollow = true
+		}
 	}
 
 	return c.JSON(http.StatusOK, utils.SuccessResponse(echo.Map{

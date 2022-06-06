@@ -6,32 +6,33 @@ import (
 )
 
 func PublicRoutes(a *echo.Echo) {
-	feedGroup := a.Group("/feed")
-	feedGroup.GET("/", controllers.GetFeed)
+	douyin := a.Group("/douyin")
 
-	userGroup := a.Group("/user")
+	douyin.GET("/feed", controllers.GetFeed)
+
+	userGroup := douyin.Group("/user")
 	userGroup.GET("/", controllers.GetUserInfo)
-	userGroup.POST("/register", controllers.Register)
-	userGroup.POST("/login", controllers.Login)
+	userGroup.POST("/register/", controllers.Register)
+	userGroup.POST("/login/", controllers.Login)
 
-	publishGroup := a.Group("/publish")
-	publishGroup.POST("/action", controllers.PublishAction)
-	publishGroup.GET("/list", controllers.GetPublishList)
+	publishGroup := douyin.Group("/publish")
+	publishGroup.POST("/action/", controllers.PublishAction)
+	publishGroup.GET("/list/", controllers.GetPublishList)
 
-	favoriteGroup := a.Group("/favorite")
-	favoriteGroup.POST("/action", controllers.FavoriteAction)
-	favoriteGroup.GET("/list", controllers.GetFavoriteList)
+	favoriteGroup := douyin.Group("/favorite")
+	favoriteGroup.POST("/action/", controllers.FavoriteAction)
+	favoriteGroup.GET("/list/", controllers.GetFavoriteList)
 
-	commentGroup := a.Group("/comment")
-	commentGroup.POST("/action", controllers.CommentAction)
-	commentGroup.GET("/list", controllers.GetCommentList)
+	commentGroup := douyin.Group("/comment")
+	commentGroup.POST("/action/", controllers.CommentAction)
+	commentGroup.GET("/list/", controllers.GetCommentList)
 
-	relationGroup := a.Group("/relation")
-	relationGroup.POST("/action", controllers.RelationAction)
+	relationGroup := douyin.Group("/relation")
+	relationGroup.POST("/action/", controllers.RelationAction)
 
 	followGroup := relationGroup.Group("/follow")
-	followGroup.GET("/list", controllers.GetFollowList)
+	followGroup.GET("/list/", controllers.GetFollowList)
 
 	followerGroup := relationGroup.Group("/follower")
-	followerGroup.GET("/list", controllers.GetFollowerList)
+	followerGroup.GET("/list/", controllers.GetFollowerList)
 }

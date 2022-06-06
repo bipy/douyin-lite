@@ -5,13 +5,14 @@ import (
 	"douyin-lite/app/queries"
 	"douyin-lite/pkg/utils"
 	"github.com/labstack/echo/v4"
+	"log"
 	"net/http"
 	"strconv"
 	"sync"
 )
 
 func FavoriteAction(c echo.Context) error {
-	curID, err := Authorize(c)
+	curID, err := MustAuthorize(c)
 	if err != nil {
 		return err
 	}
@@ -25,15 +26,33 @@ func FavoriteAction(c echo.Context) error {
 		return c.JSON(http.StatusOK, utils.FailResponse("Illegal action_type"))
 	}
 	if actionType == 1 {
-		_ = queries.DouyinDB.DoFavorite(curID, videoID)
+		err := queries.DouyinDB.DoFavorite(curID, videoID)
+		if err != nil {
+			return c.JSON(http.StatusOK, utils.FailResponse(err.Error()))
+		}
+		go func() {
+			err := queries.DouyinDB.AddFavoriteCount(1, videoID)
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+		}()
 	} else if actionType == 2 {
-		_ = queries.DouyinDB.CancelFavorite(curID, videoID)
+		err := queries.DouyinDB.CancelFavorite(curID, videoID)
+		if err != nil {
+			return c.JSON(http.StatusOK, utils.FailResponse(err.Error()))
+		}
+		go func() {
+			err := queries.DouyinDB.AddFavoriteCount(-1, videoID)
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+		}()
 	}
 	return c.JSON(http.StatusOK, utils.SuccessResponse(echo.Map{}))
 }
 
 func GetFavoriteList(c echo.Context) error {
-	curID, err := Authorize(c)
+	curID, err := MustAuthorize(c)
 	if err != nil {
 		return err
 	}
@@ -49,63 +68,65 @@ func GetFavoriteList(c echo.Context) error {
 		return c.JSON(http.StatusOK, utils.FailResponse(err.Error()))
 	}
 
-	videoIDs := make([]int, len(videos))
-	for i, v := range videos {
-		videoIDs[i] = v.Id
-	}
+	if len(videos) > 0 {
+		videoIDs := make([]int, len(videos))
+		for i, v := range videos {
+			videoIDs[i] = v.Id
+		}
 
-	videoMap := map[int]*models.Video{}
-	for i := range videos {
-		videoMap[videos[i].Id] = &videos[i]
-	}
+		videoMap := map[int]*models.Video{}
+		for i := range videos {
+			videoMap[videos[i].Id] = &videos[i]
+		}
 
-	// authors
-	userIDs := make([]int, len(videos))
-	for i, v := range videos {
-		userIDs[i] = v.AuthorId
-	}
+		// authors
+		userIDs := make([]int, len(videos))
+		for i, v := range videos {
+			userIDs[i] = v.AuthorId
+		}
 
-	var users []models.User
-	var curFollow []int
-	var uErr, foErr error
+		var users []models.User
+		var curFollow []int
+		var uErr, foErr error
 
-	// sync
-	wg := sync.WaitGroup{}
-	wg.Add(2)
+		// sync
+		wg := sync.WaitGroup{}
+		wg.Add(2)
 
-	// user
-	go func() {
-		defer wg.Done()
-		users, uErr = queries.DouyinDB.GetUserInfos(userIDs)
-	}()
+		// user
+		go func() {
+			defer wg.Done()
+			users, uErr = queries.DouyinDB.GetUserInfos(userIDs)
+		}()
 
-	// follow
-	go func() {
-		defer wg.Done()
-		curFollow, foErr = queries.DouyinDB.GetFollows(curID, userIDs)
-	}()
+		// follow
+		go func() {
+			defer wg.Done()
+			curFollow, foErr = queries.DouyinDB.GetFollows(curID, userIDs)
+		}()
 
-	wg.Wait()
+		wg.Wait()
 
-	if uErr != nil || foErr != nil {
-		return c.JSON(http.StatusOK, utils.FailResponse("Get Data Failed"))
-	}
+		if uErr != nil || foErr != nil {
+			return c.JSON(http.StatusOK, utils.FailResponse("Get Data Failed"))
+		}
 
-	// user
-	userMap := map[int]*models.User{}
-	for i := range users {
-		userMap[users[i].Id] = &users[i]
-	}
+		// user
+		userMap := map[int]*models.User{}
+		for i := range users {
+			userMap[users[i].Id] = &users[i]
+		}
 
-	// follow
-	for _, f := range curFollow {
-		userMap[f].IsFollow = true
-	}
+		// follow
+		for _, f := range curFollow {
+			userMap[f].IsFollow = true
+		}
 
-	// link
-	for i := range videos {
-		videos[i].Author = userMap[videos[i].AuthorId]
-		videos[i].IsFavorite = true
+		// link
+		for i := range videos {
+			videos[i].Author = userMap[videos[i].AuthorId]
+			videos[i].IsFavorite = true
+		}
 	}
 
 	return c.JSON(http.StatusOK, utils.SuccessResponse(echo.Map{

@@ -6,13 +6,14 @@ import (
 	"douyin-lite/pkg/repository"
 	"douyin-lite/pkg/utils"
 	"github.com/labstack/echo/v4"
+	"log"
 	"net/http"
 	"strconv"
 	"sync"
 )
 
 func CommentAction(c echo.Context) error {
-	curID, err := Authorize(c)
+	curID, err := MustAuthorize(c)
 	if err != nil {
 		return err
 	}
@@ -62,6 +63,13 @@ func CommentAction(c echo.Context) error {
 			return c.JSON(http.StatusOK, utils.FailResponse(err.Error()))
 		}
 
+		go func() {
+			err := queries.DouyinDB.AddCommentCount(1, videoID)
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+		}()
+
 		comment.CreateDate = utils.UnixTimeStampToCSTMMdd(comment.CreateTime)
 		comment.Author = user
 
@@ -81,6 +89,13 @@ func CommentAction(c echo.Context) error {
 
 		if effected == 0 {
 			return c.JSON(http.StatusOK, utils.FailResponse("Delete Failed"))
+		} else {
+			go func() {
+				err := queries.DouyinDB.AddCommentCount(-1, videoID)
+				if err != nil {
+					log.Fatal(err.Error())
+				}
+			}()
 		}
 	}
 
@@ -90,7 +105,7 @@ func CommentAction(c echo.Context) error {
 }
 
 func GetCommentList(c echo.Context) error {
-	curID, err := Authorize(c)
+	curID, err := MustAuthorize(c)
 	if err != nil {
 		return err
 	}
@@ -105,54 +120,55 @@ func GetCommentList(c echo.Context) error {
 		return c.JSON(http.StatusOK, utils.FailResponse(err.Error()))
 	}
 
-	userIDs := make([]int, len(comments))
-	for i, v := range comments {
-		userIDs[i] = v.AuthorId
+	if len(comments) > 0 {
+		userIDs := make([]int, len(comments))
+		for i, v := range comments {
+			userIDs[i] = v.AuthorId
+		}
+
+		var users []models.User
+		var curFollow []int
+		var uErr, foErr error
+
+		// sync
+		wg := sync.WaitGroup{}
+		wg.Add(2)
+
+		// user
+		go func() {
+			defer wg.Done()
+			users, uErr = queries.DouyinDB.GetUserInfos(userIDs)
+		}()
+
+		// follow
+		go func() {
+			defer wg.Done()
+			curFollow, foErr = queries.DouyinDB.GetFollows(curID, userIDs)
+		}()
+
+		wg.Wait()
+
+		if uErr != nil || foErr != nil {
+			return c.JSON(http.StatusOK, utils.FailResponse("Get Data Failed"))
+		}
+
+		// user
+		userMap := map[int]*models.User{}
+		for i := range users {
+			userMap[users[i].Id] = &users[i]
+		}
+
+		// follow
+		for _, f := range curFollow {
+			userMap[f].IsFollow = true
+		}
+
+		// link
+		for i := range comments {
+			comments[i].Author = userMap[comments[i].AuthorId]
+			comments[i].CreateDate = utils.UnixTimeStampToCSTMMdd(comments[i].CreateTime)
+		}
 	}
-
-	var users []models.User
-	var curFollow []int
-	var uErr, foErr error
-
-	// sync
-	wg := sync.WaitGroup{}
-	wg.Add(2)
-
-	// user
-	go func() {
-		defer wg.Done()
-		users, uErr = queries.DouyinDB.GetUserInfos(userIDs)
-	}()
-
-	// follow
-	go func() {
-		defer wg.Done()
-		curFollow, foErr = queries.DouyinDB.GetFollows(curID, userIDs)
-	}()
-
-	wg.Wait()
-
-	if uErr != nil || foErr != nil {
-		return c.JSON(http.StatusOK, utils.FailResponse("Get Data Failed"))
-	}
-
-	// user
-	userMap := map[int]*models.User{}
-	for i := range users {
-		userMap[users[i].Id] = &users[i]
-	}
-
-	// follow
-	for _, f := range curFollow {
-		userMap[f].IsFollow = true
-	}
-
-	// link
-	for _, v := range comments {
-		v.Author = userMap[v.AuthorId]
-		v.CreateDate = utils.UnixTimeStampToCSTMMdd(v.CreateTime)
-	}
-
 	return c.JSON(http.StatusOK, utils.SuccessResponse(echo.Map{
 		"comment_list": comments,
 	}))

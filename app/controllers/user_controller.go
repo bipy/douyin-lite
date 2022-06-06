@@ -77,7 +77,7 @@ func Login(c echo.Context) error {
 }
 
 func GetUserInfo(c echo.Context) error {
-	curID, err := Authorize(c)
+	curID, err := MustAuthorize(c)
 	if err != nil {
 		return err
 	}

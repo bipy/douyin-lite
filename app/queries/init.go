@@ -1,7 +1,6 @@
 package queries
 
 import (
-	schedules "douyin-lite/app/schdules"
 	"douyin-lite/platform"
 	"github.com/go-redis/redis/v8"
 	"github.com/jmoiron/sqlx"
@@ -22,6 +21,5 @@ var (
 
 func init() {
 	DouyinDB = &DouyinQuery{DB: platform.GetNewMySQLConn()}
-	RedisDB = &RedisQuery{Client: platform.GetNewRedisConn()}
-	schedules.StartHelloSchedule()
+	//RedisDB = &RedisQuery{Client: platform.GetNewRedisConn()}
 }

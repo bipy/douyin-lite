@@ -8,7 +8,7 @@ const (
 	createCommentQuery = `INSERT INTO COMMENTS(USER_ID, VIDEO_ID, COMMENT_TEXT) VALUES (?, ?, ?)`
 	deleteCommentQuery = `UPDATE COMMENTS SET DELETED = 1 WHERE COMMENT_ID = ? AND USER_ID = ?`
 	getCommentQuery    = `SELECT COMMENT_TEXT, CREATE_TIME FROM COMMENTS WHERE COMMENT_ID = ?`
-	getCommentsQuery   = `SELECT * FROM COMMENTS WHERE VIDEO_ID = ?`
+	getCommentsQuery   = `SELECT COMMENT_ID, USER_ID, COMMENT_TEXT, CREATE_TIME FROM COMMENTS WHERE VIDEO_ID = ?`
 )
 
 func (db *DouyinQuery) CreateComment(userID, videoID int, commentText string) (int, error) {
@@ -32,9 +32,10 @@ func (db *DouyinQuery) DeleteComment(commentID, opID int) (int, error) {
 	return int(n), nil
 }
 
-func (db *DouyinQuery) GetComment(commentID int) (rt *models.Comment, err error) {
-	err = db.Get(rt, getCommentQuery, commentID)
-	return
+func (db *DouyinQuery) GetComment(commentID int) (*models.Comment, error) {
+	comment := &models.Comment{}
+	err := db.Get(comment, getCommentQuery, commentID)
+	return comment, err
 }
 
 func (db *DouyinQuery) GetComments(videoID int) (rt []models.Comment, err error) {

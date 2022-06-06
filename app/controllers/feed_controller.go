@@ -12,34 +12,33 @@ import (
 	"time"
 )
 
-func GetHello(c echo.Context) error {
-	return c.JSON(http.StatusOK, "Hello World!")
-}
-
 func GetFeed(c echo.Context) error {
 	// params
-	curID, err := Authorize(c)
-	if err != nil {
-		curID = -1
-	}
+	curID, _ := Authorize(c)
 
-	latestTime, _ := strconv.ParseInt(c.QueryParam("latest_time"), 10, 32)
+	latestTime, _ := strconv.ParseInt(c.QueryParam("latest_time"), 10, 64)
 	nextTime := latestTime
 
 	if latestTime == 0 {
-		nextTime = time.Now().Unix()
-		latestTime = nextTime - repository.MaxFeedBackwards
+		nextTime = time.Now().UnixMilli()
+		latestTime = nextTime
 	}
 
+	latestTime -= repository.MaxFeedBackwardsMilliSec
+
 	// videos
-	videos, err := queries.DouyinDB.GetFeed(latestTime)
+	videos, err := queries.DouyinDB.GetFeed(latestTime / 1000)
 	if err != nil {
 		return c.JSON(http.StatusOK, utils.FailResponse(err.Error()))
 	}
 
-	if len(videos) != 0 {
-		nextTime = int64(videos[0].CreateTime)
+	if len(videos) == 0 {
+		return c.JSON(http.StatusOK, utils.SuccessResponse(echo.Map{
+			"next_time": latestTime,
+		}))
 	}
+
+	nextTime = videos[0].CreateTime * 1000
 
 	videoIDs := make([]int, len(videos))
 	for i, v := range videos {

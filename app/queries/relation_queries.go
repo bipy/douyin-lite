@@ -10,8 +10,8 @@ const (
 	getFollowsQuery      = `SELECT B_ID FROM FOLLOWS WHERE A_ID = ? AND B_ID IN (?)`
 	doFollowQuery        = `INSERT INTO FOLLOWS(A_ID, B_ID) VALUES (?, ?)`
 	cancelFollowQuery    = `DELETE FROM FOLLOWS WHERE A_ID = ? AND B_ID = ?`
-	getFollowListQuery   = `SELECT * FROM USERS WHERE USER_ID IN (SELECT B_ID FROM FOLLOWS WHERE A_ID = ?)`
-	getFollowerListQuery = `SELECT * FROM USERS WHERE USER_ID IN (SELECT A_ID FROM FOLLOWS WHERE B_ID = ?)`
+	getFollowListQuery   = `SELECT USER_ID, USER_NAME, FOLLOW_COUNT, FOLLOWER_COUNT FROM USERS WHERE USER_ID IN (SELECT B_ID FROM FOLLOWS WHERE A_ID = ?)`
+	getFollowerListQuery = `SELECT USER_ID, USER_NAME, FOLLOW_COUNT, FOLLOWER_COUNT FROM USERS WHERE USER_ID IN (SELECT A_ID FROM FOLLOWS WHERE B_ID = ?)`
 )
 
 func (db *DouyinQuery) GetFollows(curID int, userIDs []int) (rt []int, err error) {
@@ -19,7 +19,7 @@ func (db *DouyinQuery) GetFollows(curID int, userIDs []int) (rt []int, err error
 	if err != nil {
 		return
 	}
-	err = db.Select(&rt, query, args)
+	err = db.Select(&rt, query, args...)
 	return
 }
 

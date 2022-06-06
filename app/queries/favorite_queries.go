@@ -27,7 +27,7 @@ func (db *DouyinQuery) GetFavorite(curID int, videoIDs []int) (rt []int, err err
 	if err != nil {
 		return
 	}
-	err = db.Select(&rt, query, args)
+	err = db.Select(&rt, query, args...)
 	return
 }
 

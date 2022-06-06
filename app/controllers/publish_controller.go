@@ -12,17 +12,17 @@ import (
 )
 
 func PublishAction(c echo.Context) error {
-	curID, err := Authorize(c)
+	curID, err := MustAuthorize(c)
 	if err != nil {
 		return err
 	}
-	title := c.QueryParam("title")
+	title := c.FormValue("title")
 	if title == "" || len(title) > repository.MaxVideoTitleLength {
 		return c.JSON(http.StatusOK, utils.FailResponse("Empty Title"))
 	}
 	// TODO Storage
-	coverUrl := ""
-	playUrl := ""
+	coverUrl := "http://192.168.2.102/sample-cover"
+	playUrl := "http://192.168.2.102/sample-video"
 	_, err = queries.DouyinDB.CreateVideo(curID, playUrl, coverUrl, title)
 	if err != nil {
 		return c.JSON(http.StatusOK, utils.FailResponse(err.Error()))
@@ -31,7 +31,7 @@ func PublishAction(c echo.Context) error {
 }
 
 func GetPublishList(c echo.Context) error {
-	curID, err := Authorize(c)
+	curID, err := MustAuthorize(c)
 	if err != nil {
 		return err
 	}
@@ -47,60 +47,62 @@ func GetPublishList(c echo.Context) error {
 		return c.JSON(http.StatusOK, utils.FailResponse(err.Error()))
 	}
 
-	videoIDs := make([]int, len(videos))
-	for i, v := range videos {
-		videoIDs[i] = v.Id
-	}
+	if len(videos) > 0 {
+		videoIDs := make([]int, len(videos))
+		for i, v := range videos {
+			videoIDs[i] = v.Id
+		}
 
-	videoMap := map[int]*models.Video{}
-	for i := range videos {
-		videoMap[videos[i].Id] = &videos[i]
-	}
+		videoMap := map[int]*models.Video{}
+		for i := range videos {
+			videoMap[videos[i].Id] = &videos[i]
+		}
 
-	var user *models.User
-	isFollow := false
-	var curFavorite []int
-	var uErr, foErr, faErr error
+		var user *models.User
+		isFollow := false
+		var curFavorite []int
+		var uErr, foErr, faErr error
 
-	// sync
-	wg := sync.WaitGroup{}
-	wg.Add(3)
+		// sync
+		wg := sync.WaitGroup{}
+		wg.Add(3)
 
-	// user
-	go func() {
-		defer wg.Done()
-		user, uErr = queries.DouyinDB.GetUserInfo(userID)
-	}()
+		// user
+		go func() {
+			defer wg.Done()
+			user, uErr = queries.DouyinDB.GetUserInfo(userID)
+		}()
 
-	// follow
-	go func() {
-		defer wg.Done()
-		isFollow, foErr = queries.DouyinDB.IsFollow(curID, userID)
-	}()
+		// follow
+		go func() {
+			defer wg.Done()
+			isFollow, foErr = queries.DouyinDB.IsFollow(curID, userID)
+		}()
 
-	// favorite
-	go func() {
-		defer wg.Done()
-		curFavorite, faErr = queries.DouyinDB.GetFavorite(curID, videoIDs)
-	}()
+		// favorite
+		go func() {
+			defer wg.Done()
+			curFavorite, faErr = queries.DouyinDB.GetFavorite(curID, videoIDs)
+		}()
 
-	wg.Wait()
+		wg.Wait()
 
-	if uErr != nil || foErr != nil || faErr != nil {
-		return c.JSON(http.StatusOK, utils.FailResponse("Get Data Failed"))
-	}
+		if uErr != nil || foErr != nil || faErr != nil {
+			return c.JSON(http.StatusOK, utils.FailResponse("Get Data Failed"))
+		}
 
-	// follow
-	user.IsFollow = isFollow
+		// follow
+		user.IsFollow = isFollow
 
-	// favorite
-	for _, f := range curFavorite {
-		videoMap[f].IsFavorite = true
-	}
+		// favorite
+		for _, f := range curFavorite {
+			videoMap[f].IsFavorite = true
+		}
 
-	// link
-	for i := range videos {
-		videos[i].Author = user
+		// link
+		for i := range videos {
+			videos[i].Author = user
+		}
 	}
 
 	return c.JSON(http.StatusOK, utils.SuccessResponse(echo.Map{

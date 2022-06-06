@@ -3,6 +3,7 @@ package utils
 import (
 	"douyin-lite/pkg/configs"
 	"github.com/golang-jwt/jwt/v4"
+	"strconv"
 )
 
 func Verify(tokenString string) (int, error) {
@@ -11,18 +12,19 @@ func Verify(tokenString string) (int, error) {
 		return 0, err
 	}
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		id, ok := claims["userID"].(int)
+		idStr, ok := claims["userID"].(string)
 		if !ok {
 			return 0, jwt.ErrInvalidKeyType
 		}
-		return id, nil
+		id, err := strconv.Atoi(idStr)
+		return id, err
 	}
 	return 0, jwt.ErrTokenUnverifiable
 }
 
 func GenerateToken(userID int) (t string, err error) {
 	claims := jwt.MapClaims{}
-	claims["userID"] = userID
+	claims["userID"] = strconv.Itoa(userID)
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
