@@ -34,7 +34,17 @@
   - [x] JWT
 
 **Build and Serve**
+
+1. Set up MySQL Server
+
+2. Run `resources/sql/table.sql` before deploy
+
 ```bash
+git clone git@github.com:bipy/douyin-lite.git
+cd douyin-lite
+
+# Edit release.env (important)
+
 docker build -t douyin-lite:v1.0 .
 docker run -d --name douyin douyin-lite:v1.0
 ```

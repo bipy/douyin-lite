@@ -11,6 +11,7 @@ var (
 	RedisPassword string
 	RedisDBNum    string
 	JWTSecretKey  string
+	FFmpegPath    string
 )
 
 func init() {
@@ -22,4 +23,5 @@ func init() {
 	RedisPassword = os.Getenv("REDIS_PASSWORD")
 	RedisDBNum = os.Getenv("REDIS_DB_NUMBER")
 	JWTSecretKey = os.Getenv("JWT_SECRET_KEY")
+	FFmpegPath = os.Getenv("FFMPEG_PATH")
 }

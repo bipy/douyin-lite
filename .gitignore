@@ -49,4 +49,7 @@ crashlytics.properties
 crashlytics-build.properties
 fabric.properties
 
+file/cover/*
+file/play/*
+
 

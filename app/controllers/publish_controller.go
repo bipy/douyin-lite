@@ -5,7 +5,9 @@ import (
 	"douyin-lite/app/queries"
 	"douyin-lite/pkg/repository"
 	"douyin-lite/pkg/utils"
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"sync"
@@ -20,10 +22,34 @@ func PublishAction(c echo.Context) error {
 	if title == "" || len(title) > repository.MaxVideoTitleLength {
 		return c.JSON(http.StatusOK, utils.FailResponse("Empty Title"))
 	}
-	// TODO Storage
-	coverUrl := "sample-cover"
-	playUrl := "sample-video"
-	_, err = queries.DouyinDB.CreateVideo(curID, playUrl, coverUrl, title)
+	data, err := c.FormFile("data")
+	if err != nil {
+		return c.JSON(http.StatusOK, utils.FailResponse(err.Error()))
+	}
+
+	f, err := data.Open()
+	if err != nil {
+		return c.JSON(http.StatusOK, utils.FailResponse(err.Error()))
+	}
+
+	id := uuid.New().String()
+
+	all, err := ioutil.ReadAll(f)
+	if err != nil {
+		return c.JSON(http.StatusOK, utils.FailResponse(err.Error()))
+	}
+
+	err = ioutil.WriteFile("file/play/"+id, all, 0644)
+	if err != nil {
+		return c.JSON(http.StatusOK, utils.FailResponse(err.Error()))
+	}
+
+	err = utils.MakeSnapshot(id)
+	if err != nil {
+		return c.JSON(http.StatusOK, utils.FailResponse(err.Error()))
+	}
+
+	_, err = queries.DouyinDB.CreateVideo(curID, "play/"+id, "cover/"+id, title)
 	if err != nil {
 		return c.JSON(http.StatusOK, utils.FailResponse(err.Error()))
 	}

@@ -5,6 +5,7 @@ import (
 	"douyin-lite/app/queries"
 	"douyin-lite/pkg/repository"
 	"douyin-lite/pkg/utils"
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"strconv"
@@ -114,8 +115,8 @@ func GetFeed(c echo.Context) error {
 
 	// TODO: Storage
 	for i := range videos {
-		videos[i].CoverUrl = "http://" + c.Request().Host + "/" + videos[i].CoverUrl
-		videos[i].PlayUrl = "http://" + c.Request().Host + "/" + videos[i].PlayUrl
+		videos[i].CoverUrl = fmt.Sprintf("%s://%s/file/%s", c.Scheme(), c.Request().Host, videos[i].CoverUrl)
+		videos[i].PlayUrl = fmt.Sprintf("%s://%s/file/%s", c.Scheme(), c.Request().Host, videos[i].PlayUrl)
 	}
 
 	return c.JSON(http.StatusOK, utils.SuccessResponse(echo.Map{

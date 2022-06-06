@@ -35,4 +35,7 @@ func PublicRoutes(a *echo.Echo) {
 
 	followerGroup := relationGroup.Group("/follower")
 	followerGroup.GET("/list/", controllers.GetFollowerList)
+
+	fileGroup := a.Group("/file")
+	fileGroup.GET("/:type/:uuid", controllers.GetFile)
 }
