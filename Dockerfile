@@ -12,6 +12,10 @@ COPY --from=0 /data/server server
 COPY --from=0 /data/entrypoint.sh entrypoint.sh
 COPY --from=0 /data/*.env ./
 
+ENV DEBIAN_FRONTEND=noninteractive
+RUN echo "deb https://mirrors.tuna.tsinghua.edu.cn/debian/ bullseye main contrib non-free" > /etc/apt/sources.list
+RUN apt update; apt install -y ffmpeg
+
 EXPOSE 80
 
 ENTRYPOINT ["/app/entrypoint.sh"]
