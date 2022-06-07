@@ -13,7 +13,7 @@
   - [x] 用户注册
   - [x] 用户登录
   - [x] 用户信息
-  - [ ] 投稿
+  - [x] 投稿
   - [x] 发布列表
   - [x] 赞操作
   - [x] 点赞列表
@@ -24,20 +24,19 @@
   - [x] 粉丝列表
 - 组件
   - [x] 持久化数据库
-  - [ ] 缓存
-  - [ ] 定时任务
-  - [ ] 队列
-  - [ ] 对象储存
+  - [x] 定时任务
 - 安全
-  - [ ] 日志
+  - [x] 日志
   - [ ] 单元测试
   - [x] JWT
 
 **Build and Serve**
 
-1. Set up MySQL Server
+1. Set up MySQL Server 8
 
 2. Run `resources/sql/table.sql` before deploy
+
+3. Install `ffmpeg`
 
 ```bash
 git clone git@github.com:bipy/douyin-lite.git
