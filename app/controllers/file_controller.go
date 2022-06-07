@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"douyin-lite/pkg/configs"
 	"douyin-lite/pkg/utils"
 	"fmt"
 	"github.com/labstack/echo/v4"
@@ -11,7 +12,7 @@ import (
 func GetFile(c echo.Context) error {
 	contentType := c.Param("type")
 	id := c.Param("uuid")
-	file, err := os.ReadFile(fmt.Sprintf("file/%s/%s", contentType, id))
+	file, err := os.ReadFile(fmt.Sprintf("%s%s/%s", configs.FilePrefix, contentType, id))
 	if err != nil {
 		return c.JSON(http.StatusOK, utils.FailResponse("Get Static Resources Failed"))
 	}

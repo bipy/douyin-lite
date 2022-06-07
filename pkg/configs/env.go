@@ -12,6 +12,7 @@ var (
 	JWTSecretKey  string
 	FFmpegPath    string
 	URLPrefix     string
+	FilePrefix    string
 )
 
 func init() {
@@ -24,5 +25,9 @@ func init() {
 	URLPrefix = os.Getenv("URL_PREFIX")
 	if len(URLPrefix) > 0 && URLPrefix[len(URLPrefix)-1] != '/' {
 		URLPrefix += "/"
+	}
+	FilePrefix = os.Getenv("FILE_PREFIX")
+	if len(FilePrefix) > 0 && FilePrefix[len(FilePrefix)-1] != '/' {
+		FilePrefix += "/"
 	}
 }
