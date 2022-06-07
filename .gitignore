@@ -52,4 +52,6 @@ fabric.properties
 file/cover/*
 file/play/*
 
+.DS_Store
+
 
