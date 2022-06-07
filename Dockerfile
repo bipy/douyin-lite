@@ -11,8 +11,8 @@ WORKDIR /app
 COPY --from=0 /data/server server
 COPY --from=0 /data/entrypoint.sh entrypoint.sh
 COPY --from=0 /data/*.env ./
-COPY --from=0 /data/file ./file
 
+RUN mkdir -p file/cover; mkdir -p file/play
 RUN echo "deb http://mirrors.tuna.tsinghua.edu.cn/debian/ bullseye main contrib non-free" > /etc/apt/sources.list
 RUN apt update; apt install -y ffmpeg
 
