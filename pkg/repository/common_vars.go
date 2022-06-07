@@ -2,10 +2,6 @@ package repository
 
 import "time"
 
-var (
-	ID = 1
-)
-
 const (
 	MaxUsernameLength         = 32
 	MaxUserPasswordLength     = 32

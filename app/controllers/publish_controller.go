@@ -8,7 +8,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"io/ioutil"
+	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"sync"
 )
@@ -46,7 +48,12 @@ func PublishAction(c echo.Context) error {
 
 	err = utils.MakeSnapshot(id)
 	if err != nil {
-		return c.JSON(http.StatusOK, utils.FailResponse(err.Error()))
+		go func() {
+			_, err := os.OpenFile("file/cover/"+id, os.O_RDONLY|os.O_CREATE, 0644)
+			if err != nil {
+				log.Fatal(id + " " + err.Error())
+			}
+		}()
 	}
 
 	_, err = queries.DouyinDB.CreateVideo(curID, "play/"+id, "cover/"+id, title)

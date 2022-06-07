@@ -3,6 +3,7 @@ package controllers
 import (
 	"douyin-lite/app/models"
 	"douyin-lite/app/queries"
+	"douyin-lite/pkg/configs"
 	"douyin-lite/pkg/repository"
 	"douyin-lite/pkg/utils"
 	"fmt"
@@ -113,10 +114,14 @@ func GetFeed(c echo.Context) error {
 		videos[i].Author = userMap[videos[i].AuthorId]
 	}
 
-	// TODO: Storage
+	scheme := "http"
+	if configs.EnableHttps == 1 {
+		scheme = "https"
+	}
+
 	for i := range videos {
-		videos[i].CoverUrl = fmt.Sprintf("%s://%s/file/%s", c.Scheme(), c.Request().Host, videos[i].CoverUrl)
-		videos[i].PlayUrl = fmt.Sprintf("%s://%s/file/%s", c.Scheme(), c.Request().Host, videos[i].PlayUrl)
+		videos[i].CoverUrl = fmt.Sprintf("%s://%s/file/%s", scheme, c.Request().Host, videos[i].CoverUrl)
+		videos[i].PlayUrl = fmt.Sprintf("%s://%s/file/%s", scheme, c.Request().Host, videos[i].PlayUrl)
 	}
 
 	return c.JSON(http.StatusOK, utils.SuccessResponse(echo.Map{
