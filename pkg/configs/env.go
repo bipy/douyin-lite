@@ -2,7 +2,6 @@ package configs
 
 import (
 	"os"
-	"strconv"
 )
 
 var (
@@ -12,7 +11,7 @@ var (
 	MySQLDatabase string
 	JWTSecretKey  string
 	FFmpegPath    string
-	EnableHttps   int
+	URLPrefix     string
 )
 
 func init() {
@@ -22,5 +21,8 @@ func init() {
 	MySQLDatabase = os.Getenv("MYSQL_DATABASE")
 	JWTSecretKey = os.Getenv("JWT_SECRET_KEY")
 	FFmpegPath = os.Getenv("FFMPEG_PATH")
-	EnableHttps, _ = strconv.Atoi(os.Getenv("ENABLE_HTTPS"))
+	URLPrefix = os.Getenv("URL_PREFIX")
+	if len(URLPrefix) > 0 && URLPrefix[len(URLPrefix)-1] != '/' {
+		URLPrefix += "/"
+	}
 }

@@ -114,14 +114,9 @@ func GetFeed(c echo.Context) error {
 		videos[i].Author = userMap[videos[i].AuthorId]
 	}
 
-	scheme := "http"
-	if configs.EnableHttps == 1 {
-		scheme = "https"
-	}
-
 	for i := range videos {
-		videos[i].CoverUrl = fmt.Sprintf("%s://%s/file/%s", scheme, c.Request().Host, videos[i].CoverUrl)
-		videos[i].PlayUrl = fmt.Sprintf("%s://%s/file/%s", scheme, c.Request().Host, videos[i].PlayUrl)
+		videos[i].CoverUrl = fmt.Sprintf("%sfile/%s", configs.URLPrefix, videos[i].CoverUrl)
+		videos[i].PlayUrl = fmt.Sprintf("%sfile/%s", configs.URLPrefix, videos[i].PlayUrl)
 	}
 
 	return c.JSON(http.StatusOK, utils.SuccessResponse(echo.Map{
